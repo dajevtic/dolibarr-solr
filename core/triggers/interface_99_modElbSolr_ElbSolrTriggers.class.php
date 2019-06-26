@@ -340,7 +340,6 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 				break;
 			case "ECMFILES_MODIFY":
 			case "ECMFILES_DELETE":
-				$a = 1;
 				break;
 			default:
 				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
