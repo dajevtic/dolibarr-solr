@@ -20,7 +20,7 @@
 # Module label 'ModuleElbSolrName'
 ModuleElbSolrName = ElbSolr
 # Module description 'ModuleElbSolrDesc'
-ModuleElbSolrDesc = ElbSolr description
+ModuleElbSolrDesc = SOLR search engine integration for quick document search
 
 #
 # Admin page
@@ -28,11 +28,18 @@ ModuleElbSolrDesc = ElbSolr description
 ElbSolrSetup = ElbSolr setup
 Settings = Settings
 ElbSolrSetupPage = ElbSolr setup page
-ELBSOLR_MYPARAM1 = My param 1
-ELBSOLR_MYPARAM1Tooltip = My param 1 tooltip
-ELBSOLR_MYPARAM2=My param 2
-ELBSOLR_MYPARAM2Tooltip=My param 2 tooltip
-
+ELBSOLR_INDEXING_ACTIVE = Solr indexing active
+ELBSOLR_INDEXING_ACTIVETooltip = Enables/disables Solr indexing (0/1)
+ELBSOLR_SOLR_SERVER_URL = Solr server url
+ELBSOLR_SOLR_SERVER_URLTooltip = Full path to remote or local Solr server
+ELBSOLR_SOLR_SERVER_AUTH = Username and password for Solr
+ELBSOLR_SOLR_SERVER_AUTHTooltip = If required by Solr server enter in format username:password
+ELBSOLR_BREAK_ON_ERROR = Break on error
+ELBSOLR_BREAK_ON_ERRORTooltip = Break upload file action if error happens while indexing file (0/1)
+ELBSOLR_SHOW_ACTION_MESSAGE = Show message after action
+ELBSOLR_SHOW_ACTION_MESSAGETooltip = Show message when indexing action is executed (0/1)
+ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE=Show detail error message
+ELBSOLR_SHOW_DETAILED_ERROR_MESSAGETooltip = In case of indexing error show also detailed error mesage (0/1)
 
 #
 # About page
@@ -51,3 +58,9 @@ MyPageName = My page name
 #
 MyWidget = My widget
 MyWidgetDescription = My widget description
+
+#
+# Module
+#
+FileAddedToSolrServerSuccess=File is added to Solr search engine
+FileAddedToSolrServerError=There was an error while adding file to Solr search engine %s

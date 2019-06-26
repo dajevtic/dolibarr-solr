@@ -54,8 +54,12 @@ $action = GETPOST('action', 'alpha');
 $backtopage = GETPOST('backtopage', 'alpha');
 
 $arrayofparameters=array(
-	'ELBSOLR_MYPARAM1'=>array('css'=>'minwidth200','enabled'=>1),
-	'ELBSOLR_MYPARAM2'=>array('css'=>'minwidth500','enabled'=>1)
+	'ELBSOLR_INDEXING_ACTIVE'=>array('css'=>'minwidth25','enabled'=>1),
+	'ELBSOLR_SOLR_SERVER_URL'=>array('css'=>'minwidth300','enabled'=>1),
+	'ELBSOLR_SOLR_SERVER_AUTH'=>array('css'=>'minwidth300','enabled'=>1),
+	'ELBSOLR_BREAK_ON_ERROR'=>array('css'=>'minwidth25','enabled'=>1),
+	'ELBSOLR_SHOW_ACTION_MESSAGE'=>array('css'=>'minwidth25','enabled'=>1),
+	'ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE'=>array('css'=>'minwidth25','enabled'=>1),
 );
 
 

@@ -241,4 +241,14 @@ class ActionsElbSolr
 	}
 
 	/* Add here any other hooked methods... */
+
+	function formattachOptions($parameters,$object) {
+		$s='<input type="hidden" value="'.$object->element.'" name="elbsolr_object_type"/>';
+		$s.='<input type="hidden" value="'.$object->id.'" name="elbsolr_object_id"/>';
+		$s.='<script type="text/javascript">';
+		$s.='$(function(){attach_hidden_fields_to_upload_form()})';
+		$s.='</script>';
+		$this->resprints = $s;
+		return 0;
+	}
 }

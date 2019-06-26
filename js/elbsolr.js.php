@@ -59,4 +59,7 @@ else header('Cache-Control: no-cache');
 
 /* Javascript library of module ElbSolr */
 
-
+function attach_hidden_fields_to_upload_form() {
+    $('#formuserfile').append($('[name=elbsolr_object_type]'));
+    $('#formuserfile').append($('[name=elbsolr_object_id]'));
+}

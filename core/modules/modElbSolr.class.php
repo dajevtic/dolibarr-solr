@@ -52,7 +52,7 @@ class modElbSolr extends DolibarrModules
 
 		// Family can be 'base' (core modules),'crm','financial','hr','projects','products','ecm','technic' (transverse modules),'interface' (link with external tools),'other','...'
 		// It is used to group modules by family in module setup page
-		$this->family = "other";
+		$this->family = "ecm";
 		// Module position in the family on 2 digits ('01', '10', '20', ...)
 		$this->module_position = '90';
 		// Gives the possibility for the module, to provide his own family info and position of this family (Overwrite $this->family and $this->module_position. Avoid this)
@@ -61,12 +61,12 @@ class modElbSolr extends DolibarrModules
 		// Module label (no space allowed), used if translation string 'ModuleElbSolrName' not found (ElbSolr is name of module).
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleElbSolrDesc' not found (ElbSolr is name of module).
-		$this->description = "ElbSolrDescription";
+		$this->description = "SOLR search engine integration for quick document search";
 		// Used only if file README.md and README-LL.md not found.
-		$this->descriptionlong = "ElbSolr description (Long)";
+		$this->descriptionlong = "SOLR search engine integration for quick document search";
 
-		$this->editor_name = 'Editor name';
-		$this->editor_url = 'https://www.example.com';
+		$this->editor_name = 'ELB Solutions';
+		$this->editor_url = 'https://www.elb-solutions.com';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
 		$this->version = '1.0';
@@ -84,7 +84,7 @@ class modElbSolr extends DolibarrModules
 		$this->module_parts = array(
 		    'triggers' => 1,                                 	// Set this to 1 if module has its own trigger directory (core/triggers)
 			'login' => 0,                                    	// Set this to 1 if module has its own login method file (core/login)
-			'substitutions' => 1,                            	// Set this to 1 if module has its own substitution function file (core/substitutions)
+			'substitutions' => 0,                            	// Set this to 1 if module has its own substitution function file (core/substitutions)
 			'menus' => 0,                                    	// Set this to 1 if module has its own menus handler directory (core/menus)
 			'theme' => 0,                                    	// Set this to 1 if module has its own theme directory (theme)
 		    'tpl' => 0,                                      	// Set this to 1 if module overwrite template dir (core/tpl)
@@ -92,7 +92,7 @@ class modElbSolr extends DolibarrModules
 			'models' => 0,                                   	// Set this to 1 if module has its own models directory (core/modules/xxx)
 			'css' => array('/elbsolr/css/elbsolr.css.php'),	// Set this to relative path of css file if module has its own css file
 	 		'js' => array('/elbsolr/js/elbsolr.js.php'),          // Set this to relative path of js file if module must load a js on all pages
-			'hooks' => array('data'=>array('hookcontext1','hookcontext2'), 'entity'=>'0'), 	// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context 'all'
+			'hooks' => array('data'=>array('formfile'), 'entity'=>'0'), 	// Set here all hooks context managed by module. To find available hook context, make a "grep -r '>initHooks(' *" on source code. You can also set hook context 'all'
 			'moduleforexternal' => 0							// Set this to 1 if feature of module are opened to external users
 		);
 
@@ -122,7 +122,12 @@ class modElbSolr extends DolibarrModules
 		//                             1=>array('ELBSOLR_MYNEWCONST2','chaine','myvalue','This is another constant to add',0, 'current', 1)
 		// );
 		$this->const = array(
-			1=>array('ELBSOLR_MYCONSTANT', 'chaine', 'avalue', 'This is a constant to add', 1, 'allentities', 1)
+			1=>array('ELBSOLR_INDEXING_ACTIVE', 'chaine', 0, 'Solr indexing active', 1, 'allentities', 1),
+			2=>array('ELBSOLR_SOLR_SERVER_URL', 'chaine', 0, 'Solr server url', 1, 'allentities', 1),
+			3=>array('ELBSOLR_SOLR_SERVER_AUTH', 'chaine', 0, 'Username and password for Solr', 1, 'allentities', 1),
+			4=>array('ELBSOLR_BREAK_ON_ERROR', 'chaine', 0, 'Break on error', 1, 'allentities', 1),
+			5=>array('ELBSOLR_SHOW_ACTION_MESSAGE', 'chaine', 1, 'Show message after action', 1, 'allentities', 1),
+			6=>array('ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE', 'chaine', 0, 'Show detail error message', 1, 'allentities', 1),
 		);
 
 		// Some keys to add into the overwriting translation tables
@@ -187,18 +192,12 @@ class modElbSolr extends DolibarrModules
 
         // Boxes/Widgets
 		// Add here list of php file(s) stored in elbsolr/core/boxes that contains class to show a widget.
-        $this->boxes = array(
-        	0=>array('file'=>'elbsolrwidget1.php@elbsolr','note'=>'Widget provided by ElbSolr','enabledbydefaulton'=>'Home'),
-        	//1=>array('file'=>'elbsolrwidget2.php@elbsolr','note'=>'Widget provided by ElbSolr'),
-        	//2=>array('file'=>'elbsolrwidget3.php@elbsolr','note'=>'Widget provided by ElbSolr')
-        );
+        $this->boxes = array();
 
 
 		// Cronjobs (List of cron jobs entries to add when module is enabled)
 		// unit_frequency must be 60 for minute, 3600 for hour, 86400 for day, 604800 for week
-		$this->cronjobs = array(
-			0=>array('label'=>'MyJob label', 'jobtype'=>'method', 'class'=>'/elbsolr/class/myobject.class.php', 'objectname'=>'MyObject', 'method'=>'doScheduledJob', 'parameters'=>'', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>'$conf->elbsolr->enabled', 'priority'=>50)
-		);
+		$this->cronjobs = array();
 		// Example: $this->cronjobs=array(0=>array('label'=>'My label', 'jobtype'=>'method', 'class'=>'/dir/class/file.class.php', 'objectname'=>'MyClass', 'method'=>'myMethod', 'parameters'=>'param1, param2', 'comment'=>'Comment', 'frequency'=>2, 'unitfrequency'=>3600, 'status'=>0, 'test'=>'$conf->elbsolr->enabled', 'priority'=>50),
 		//                                1=>array('label'=>'My label', 'jobtype'=>'command', 'command'=>'', 'parameters'=>'param1, param2', 'comment'=>'Comment', 'frequency'=>1, 'unitfrequency'=>3600*24, 'status'=>0, 'test'=>'$conf->elbsolr->enabled', 'priority'=>50)
 		// );
@@ -206,28 +205,6 @@ class modElbSolr extends DolibarrModules
 
 		// Permissions
 		$this->rights = array();		// Permission array used by this module
-
-		$r=0;
-		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = 'Read myobject of ElbSolr';	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'read';				// In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-		$this->rights[$r][5] = '';				    // In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-
-		$r++;
-		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = 'Create/Update myobject of ElbSolr';	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'write';				// In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-		$this->rights[$r][5] = '';				    // In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-
-		$r++;
-		$this->rights[$r][0] = $this->numero + $r;	// Permission id (must not be already used)
-		$this->rights[$r][1] = 'Delete myobject of ElbSolr';	// Permission label
-		$this->rights[$r][3] = 1; 					// Permission by default for new user (0/1)
-		$this->rights[$r][4] = 'delete';				// In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-		$this->rights[$r][5] = '';				    // In php code, permission will be checked by test if ($user->rights->elbsolr->level1->level2)
-
 
 		// Main menu entries
 		$this->menu = array();			// List of menus to add
