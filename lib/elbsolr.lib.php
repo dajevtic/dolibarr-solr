@@ -43,6 +43,10 @@ function elbsolrAdminPrepareHead()
 	$head[$h][1] = $langs->trans("About");
 	$head[$h][2] = 'about';
 	$h++;
+	$head[$h][0] = dol_buildpath("/elbsolr/admin/status.php", 1);
+	$head[$h][1] = $langs->trans("Status");
+	$head[$h][2] = 'status';
+	$h++;
 
 	// Show more tabs from modules
 	// Entries must be declared in modules descriptor with line

@@ -64,3 +64,10 @@ MyWidgetDescription = My widget description
 #
 FileAddedToSolrServerSuccess=File is added to Solr search engine
 FileAddedToSolrServerError=There was an error while adding file to Solr search engine %s
+SolrServerStatus=Solr server status
+NumberOfIndexedDocuments=Number of indexed documents
+ClearAllIndexedDocuments=Clear all indexed documents
+IndexAllDocuments=Index all documents
+ConfirmClearAllIndexedDocuments=Are you sure to want to delete all indexed documents in Solr?
+SolrIndexDeletedSuccess=Solr index deleted successfully
+SolrIndexDeletedError=There was an error while deleting Solr index:<br/>%s

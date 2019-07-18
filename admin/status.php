@@ -17,7 +17,7 @@
  */
 
 /**
- * \file    elbsolr/admin/status.php
+ * \file    elbsolr/admin/about.php
  * \ingroup elbsolr
  * \brief   About page of module ElbSolr.
  */
@@ -40,6 +40,10 @@ if (! $res) die("Include of main fails");
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once '../lib/elbsolr.lib.php';
+dol_include_once('/elbsolr/class/elbsolrutil.class.php', 'ElbSolrUtil');
+
+$form = new Form($db);
+$elbSolr = new ElbSolrUtil();
 
 // Translations
 $langs->loadLangs(array("errors","admin","elbsolr@elbsolr"));
@@ -49,6 +53,7 @@ if (! $user->admin) accessforbidden();
 
 // Parameters
 $action = GETPOST('action', 'alpha');
+$confirm=GETPOST('confirm');
 $backtopage = GETPOST('backtopage', 'alpha');
 
 
@@ -56,17 +61,31 @@ $backtopage = GETPOST('backtopage', 'alpha');
  * Actions
  */
 
-// None
+if($action=="confirm_clear_all" && $confirm=="yes") {
+	$res = $elbSolr->clearAllIndexedDocuments();
+	if($res) {
+	    setEventMessage($langs->trans('SolrIndexDeletedSuccess'));
+    } else {
+		setEventMessage($langs->trans('SolrIndexDeletedError',$elbSolr->getErrorMessage()),'errors');
+    }
+    header("location: ".$_SERVER['PHP_SELF']);
+    exit;
+}
 
 
 /*
  * View
  */
 
-$form = new Form($db);
+if($action=="clear_all") {
+	$formconfirm = $form->formconfirm($_SERVER["PHP_SELF"], $langs->trans('ClearAllIndexedDocuments'), $langs->trans('ConfirmClearAllIndexedDocuments'), 'confirm_clear_all', null, 'yes', 1);
+}
 
-$page_name = "ElbSolrAbout";
+$page_name = "SolrStatus";
 llxHeader('', $langs->trans($page_name));
+
+// Print form confirm
+print $formconfirm;
 
 // Subheader
 $linkback = '<a href="'.($backtopage?$backtopage:DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1').'">'.$langs->trans("BackToModuleList").'</a>';
@@ -75,11 +94,56 @@ print load_fiche_titre($langs->trans($page_name), $linkback, 'object_elbsolr@elb
 
 // Configuration header
 $head = elbsolrAdminPrepareHead();
-dol_fiche_head($head, 'about', '', 0, 'elbsolr@elbsolr');
+dol_fiche_head($head, 'status', '', -1, 'elbsolr@elbsolr');
 
-dol_include_once('/elbsolr/core/modules/modElbSolr.class.php');
-$tmpmodule = new modElbSolr($db);
-print $tmpmodule->getDescLong();
+$solrServerUrl = $conf->global->ELBSOLR_SOLR_SERVER_URL;
+$parts = explode("/",$solrServerUrl);
+array_pop($parts);
+$solrServerUrlInterface = implode("/", $parts);
+$solrServerUrlInterface.="/";
+
+$status = $elbSolr->getStatus();
+$docNum = $elbSolr->getNumberOfDocuments();
+
+?>
+
+<table class="noborder" width="100%">
+    <tbody>
+        <tr class="oddeven">
+            <td><?php echo $langs->trans('ELBSOLR_SOLR_SERVER_URL') ?></td>
+            <td>
+                <a href="<?php echo $solrServerUrlInterface ?>" target="_blank">
+                    <?php echo $solrServerUrlInterface ?>
+                </a>
+            </td>
+        </tr>
+        <tr class="oddeven">
+            <td><?php echo $langs->trans('SolrServerStatus') ?></td>
+            <td>
+                <?php echo $status['success'] ? "RUNNING" : "FAILED" ?>
+            </td>
+        </tr>
+        <tr class="oddeven">
+            <td>
+                <?php echo $langs->trans('NumberOfIndexedDocuments') ?>
+            </td>
+            <td>
+                <?php echo $docNum ?>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="tabsAction">
+    <a class="butAction" href="<?php echo $_SERVER["PHP_SELF"] ?>?action=clear_all"><?php echo $langs->trans('ClearAllIndexedDocuments') ?></a>
+    <a class="butAction" href="<?php echo $_SERVER["PHP_SELF"] ?>?action=index_all"><?php echo $langs->trans('IndexAllDocuments') ?></a>
+</div>
+
+
+<?php
+
+
+
 
 // Page end
 dol_fiche_end();
