@@ -8,6 +8,7 @@ class ElbSolrUtil
 	private $error;
 	private $response;
 	private $responseHeader;
+	public $memory_limit = '128M';
 
 
 	function __construct()
@@ -17,10 +18,10 @@ class ElbSolrUtil
 		$this->solr_server_auth = $conf->global->ELBSOLR_SOLR_SERVER_AUTH;
 	}
 
-	function addToSearchIndex(EcmFiles $ecmFiles)
+	function addToSearchIndex($ecmFiles)
 	{
 
-		global $langs, $user;
+		global $langs, $user, $db;
 
 		$this->error = null;
 		$this->response = null;
@@ -40,11 +41,11 @@ class ElbSolrUtil
 		$tags = array();
 		$fileUser = $user;
 		if (!empty($ecmFiles->fk_user_c)) {
-			$fileUser = new User($langs);
+			$fileUser = new User($db);
 			$fileUser->fetch_user($ecmFiles->fk_user_c);
 		}
-		$src_object_type = GETPOST('elbsolr_object_type', 'alpha');
-		$src_object_id = GETPOST('elbsolr_object_id', 'int');
+		$src_object_type = !empty($ecmFiles->src_object_type) ? $ecmFiles->src_object_type : GETPOST('elbsolr_object_type', 'alpha');
+		$src_object_id = !empty($ecmFiles->src_object_id) ? $ecmFiles->src_object_id : GETPOST('elbsolr_object_id', 'int');
 		$params = array(
 			"literal.id" => $ecmFiles->id,
 			"commit" => "true",
@@ -116,7 +117,7 @@ class ElbSolrUtil
 		return true;
 	}
 
-	function getFullFilePath(EcmFiles $ecmFiles)
+	function getFullFilePath($ecmFiles)
 	{
 		$file = $ecmFiles->filepath . DIRECTORY_SEPARATOR . $ecmFiles->filename;
 		return DOL_DATA_ROOT . DIRECTORY_SEPARATOR . $file;
@@ -124,7 +125,7 @@ class ElbSolrUtil
 
 	function getErrorMessage()
 	{
-		if(is_array($this->error) && isset($this->error['msg'])) {
+		if (is_array($this->error) && isset($this->error['msg'])) {
 			return $this->error['msg'];
 		} else {
 			return $this->error;
@@ -167,8 +168,9 @@ class ElbSolrUtil
 		return $this->response['numFound'];
 	}
 
-	function clearAllIndexedDocuments() {
-		$target_url=$this->solr_server_url."/update?commit=true&wt=json";
+	function clearAllIndexedDocuments()
+	{
+		$target_url = $this->solr_server_url . "/update?commit=true&wt=json";
 		$post_data = '<delete><query>*:*</query></delete>';
 		$post_headers = array(
 			'Content-Type: text/xml'
@@ -189,6 +191,92 @@ class ElbSolrUtil
 		return $res;
 	}
 
+	function getIndexingStatus()
+	{
+		global $langs;
+		$indexing_status_file = $this->getIndexingStatusFile();
+		if (!file_exists($indexing_status_file)) {
+			return $langs->trans('IndexingStatusNone');
+		}
+		$status = json_decode(file_get_contents($indexing_status_file), true);
+		if ($status === false) {
+			return $langs->trans('IndexingStatusErrorReading');
+		}
+		if (isset($status['pid']) && file_exists( "/proc/" . $status['pid'])) {
+			$remain_time = gmdate("H:i:s", (($status['elapsed']) / $status['processed']) * ($status['count'] - $status['processed']));
+			$s = $langs->trans('IndexingStatusRunning', $status['processed'], $status['count'], $remain_time, $this->convertBytes($status['memory']) . " / " . $this->memory_limit);
+			$s.= ", PID: ".$status['pid'];
+			return $s;
+		}
+		return $langs->trans('IndexingStatusFinished', $status['processed'], $status['errors'], dol_print_date($status['started'], 'dayhoursec'),
+			convertSecondToTime($status['elapsed'], 'allhourmin'));
+
+	}
+
+	private function convertBytes($size)
+	{
+		$unit = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
+		return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
+	}
+
+	public function getIndexingStatusFile() {
+		$status_folder = DOL_DATA_ROOT . "/elbsolr/temp";
+		if (!file_exists($status_folder)) {
+			dol_mkdir($status_folder);
+		}
+		return $status_folder . "/indexing.json";
+	}
+
+	public function isIndexingInProgress()
+	{
+		$indexing_status_file = $this->getIndexingStatusFile();
+		if (!file_exists($indexing_status_file)) {
+			return false;
+		}
+		$status = json_decode(file_get_contents($indexing_status_file), true);
+		if (empty($status)) {
+			return false;
+		}
+		if (isset($status['pid']) && file_exists( "/proc/" . $status['pid'])) {
+			return true;
+		}
+		return false;
+	}
+
+	public function isIndexingFinished()
+	{
+		$indexing_status_file = $this->getIndexingStatusFile();
+		if (!file_exists($indexing_status_file)) {
+			return false;
+		}
+		$status = json_decode(file_get_contents($indexing_status_file), true);
+		if ($status === false) {
+			return false;
+		}
+		if (!isset($status['pid']) || !file_exists( "/proc/" . $status['pid'])) {
+			return true;
+		}
+		return false;
+	}
+
+	public function getIndexingScriptFile() {
+		return realpath(dirname(__FILE__) . "/../scripts/solr_indexing.php");
+	}
+
+	public function getIndexingErrors() {
+		$indexing_status_file = $this->getIndexingStatusFile();
+		if (!file_exists($indexing_status_file)) {
+			return false;
+		}
+		$status = json_decode(file_get_contents($indexing_status_file), true);
+		if (empty($status)) {
+			return false;
+		}
+		if(isset($status['error_files'])) {
+			return $status['error_files'];
+		}
+		return false;
+	}
 
 }
 

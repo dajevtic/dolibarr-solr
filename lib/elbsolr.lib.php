@@ -39,13 +39,13 @@ function elbsolrAdminPrepareHead()
 	$head[$h][1] = $langs->trans("Settings");
 	$head[$h][2] = 'settings';
 	$h++;
-	$head[$h][0] = dol_buildpath("/elbsolr/admin/about.php", 1);
-	$head[$h][1] = $langs->trans("About");
-	$head[$h][2] = 'about';
-	$h++;
 	$head[$h][0] = dol_buildpath("/elbsolr/admin/status.php", 1);
 	$head[$h][1] = $langs->trans("Status");
 	$head[$h][2] = 'status';
+	$h++;
+	$head[$h][0] = dol_buildpath("/elbsolr/admin/about.php", 1);
+	$head[$h][1] = $langs->trans("About");
+	$head[$h][2] = 'about';
 	$h++;
 
 	// Show more tabs from modules
