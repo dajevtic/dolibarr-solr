@@ -6,8 +6,9 @@ class ElbSolrUtil
 	private $solr_server_url;
 	private $solr_server_auth;
 	private $error;
-	private $response;
-	private $responseHeader;
+	public $response;
+	public $responseHeader;
+	public $highlighting;
 	public $memory_limit = '128M';
 
 
@@ -108,12 +109,15 @@ class ElbSolrUtil
 
 		//If Solr has some error status will be non zero
 		if (!isset($result_json['responseHeader']['status']) || $result_json['responseHeader']['status'] <> 0) {
-			$this->error = $result_json['error'];
-			return false;
+			if($result_json['error']['code']!=500) { //Highlighting not available: maxClauseCount is set to 1024
+				$this->error = $result_json['error'];
+				return false;
+			}
 		}
 
 		$this->response = $result_json['response'];
 		$this->responseHeader = $result_json['responseHeader'];
+		$this->highlighting = @$result_json['highlighting'];
 		return true;
 	}
 
@@ -276,6 +280,75 @@ class ElbSolrUtil
 			return $status['error_files'];
 		}
 		return false;
+	}
+
+
+	public function search($name='', $content='',$object_type='', $object_id=null, $tags=array(), $rev=null, $limit=50, $page=0, $sortfield=null, $sortorder=null) {
+
+		$query_parts=array();
+
+		if(empty($name)) $name='*';
+
+		if(!empty($name)) {
+			$query_parts[]="elb_name:".$name;
+		}
+		if(!empty($content)) {
+			$query_parts[]="attr_content:".$content;
+		}
+		if(!empty($elb_object_type)) {
+			$query_parts[]="elb_object_type:".$object_type;
+		}
+		if(!empty($elb_object_id)) {
+			$query_parts[]="elb_object_id:".$object_id;
+		}
+		if(count($tags)>0) {
+			$tags_array=array();
+			foreach($tags as $tag) {
+				$tags_array[]='"'.$tag.'"';
+			}
+			$tag_query="(".implode(" OR ", $tags_array). ")";
+			$query_parts[]="elb_tag:".$tag_query;
+		}
+		if(!empty($rev)) {
+			$query_parts[]="elb_revision:".$rev;
+		}
+
+		$query=implode(" AND ", $query_parts);
+
+		$url=$this->solr_server_url."/select?indent=0&q=".urlencode($query)."&wt=json";
+		$url.="&fl=elb_*,id";
+		if(!empty($content)) {
+			$url.="&hl=on&hl.fl=attr_content&hl.simple.pre=<strong>&hl.simple.post=</strong>&hl.requireFieldMatch=true";
+		}
+		$url.="&rows=".$limit;
+		$url.="&start=".$page * $limit;
+		if(!empty($sortfield)) {
+			$sort_string = null;
+			if(empty($sortorder)) {
+				$sortorder="asc";
+			}
+			if($sortfield=='size') {
+				$sort_string = "stream_size ".$sortorder;
+			}
+			if($sortfield=='file') {
+				$sort_string = "elb_name ".$sortorder;
+			}
+			if(!empty($sort_string)) {
+				$url.="&sort=".urlencode($sort_string);
+			}
+		}
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL,$url);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		if (!empty($this->solr_server_auth)) {
+			curl_setopt($ch, CURLOPT_USERPWD, $this->solr_server_auth);
+		}
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$result = curl_exec($ch);
+		$res = $this->handleCurlResponse($ch, $result);
+		curl_close($ch);
+		return $res;
 	}
 
 }

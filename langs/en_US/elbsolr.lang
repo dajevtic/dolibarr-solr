@@ -86,3 +86,5 @@ ErrorStoppingProcess=Error while stopping process
 StoppingIndexingSuccess=Indexing was stopped successfully
 ConfirmStopIndexing=Are you sure to want to stop current indexing?
 NotIndexedFiles=Not indexed files
+DocumentSearch=Document search
+FileSearchHelp=Use wildcard * to replace part of file name

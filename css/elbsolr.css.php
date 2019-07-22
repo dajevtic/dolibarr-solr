@@ -69,8 +69,13 @@ else header('Cache-Control: no-cache');
 
 ?>
 
-.myclasscss {
-	/* ... */
+.file-search-highlight {
+    background-color:#fff;
+    border: solid 1px rgba(0,0,0,.3);
+    color: #666;
+    padding: 5px;
+    margin:5px;
+    border-radius: 4px;
 }
 
 
