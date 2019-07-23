@@ -314,32 +314,23 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 				if(!GETPOST('sendit','alpha')) {
 					return 0;
 				}
-				$elbSolrUtil = new ElbSolrUtil();
-				$res = $elbSolrUtil->addToSearchIndex($object);
-				$break_on_error = !empty($conf->global->ELBSOLR_BREAK_ON_ERROR);
-				$show_action_message = !empty($conf->global->ELBSOLR_SHOW_ACTION_MESSAGE);
-				$show_error_detailed_message = !empty($conf->global->ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE);
-				if($res) {
-					if ($show_action_message) {
-						setEventMessage($langs->trans('FileAddedToSolrServerSuccess'));
-					}
-				} else {
-					$error_message = $show_error_detailed_message ? ':<br/>' . $elbSolrUtil->getErrorMessage() : '.';
-					if ($show_action_message) {
-						setEventMessage($langs->trans('FileAddedToSolrServerError', $error_message), 'errors');
-					}
-					if($break_on_error) {
-						$file = $elbSolrUtil->getFullFilePath($object);
-						if(file_exists($file)) {
-							dol_delete_file($file);
-						}
-						header("location: ".$_SERVER['REQUEST_URI']);
-						exit;
-					}
-				}
+				$this->addFileToSolr($object);
 				break;
 			case "ECMFILES_MODIFY":
+				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+				// Do not execute if indexing not active
+				if (empty($conf->global->ELBSOLR_INDEXING_ACTIVE)) {
+					return 0;
+				}
+				$this->addFileToSolr($object);
+				break;
 			case "ECMFILES_DELETE":
+				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
+				// Do not execute if indexing not active
+				if (empty($conf->global->ELBSOLR_INDEXING_ACTIVE)) {
+					return 0;
+				}
+				$this->deleteFileFromSolr($object);
 				break;
 			default:
 				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
@@ -347,5 +338,50 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 		}
 
 		return 0;
+	}
+
+	private function addFileToSolr($object) {
+		global $conf, $langs;
+		$elbSolrUtil = new ElbSolrUtil();
+		$res = $elbSolrUtil->addToSearchIndex($object);
+		$break_on_error = !empty($conf->global->ELBSOLR_BREAK_ON_ERROR);
+		$show_action_message = !empty($conf->global->ELBSOLR_SHOW_ACTION_MESSAGE);
+		$show_error_detailed_message = !empty($conf->global->ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE);
+		if($res) {
+			if ($show_action_message) {
+				setEventMessage($langs->trans('FileAddedToSolrServerSuccess'));
+			}
+		} else {
+			$error_message = $show_error_detailed_message ? ':<br/>' . $elbSolrUtil->getErrorMessage() : '.';
+			if ($show_action_message) {
+				setEventMessage($langs->trans('FileAddedToSolrServerError', $error_message), 'errors');
+			}
+			if($break_on_error) {
+				$file = $elbSolrUtil->getFullFilePath($object);
+				if(file_exists($file)) {
+					dol_delete_file($file);
+				}
+				header("location: ".$_SERVER['REQUEST_URI']);
+				exit;
+			}
+		}
+	}
+
+	private function deleteFileFromSolr($object) {
+		global $conf, $langs;
+		$elbSolrUtil = new ElbSolrUtil();
+		$res = $elbSolrUtil->deleteDocumentById($object->id);
+		$show_action_message = !empty($conf->global->ELBSOLR_SHOW_ACTION_MESSAGE);
+		$show_error_detailed_message = !empty($conf->global->ELBSOLR_SHOW_DETAILED_ERROR_MESSAGE);
+		if($res) {
+			if ($show_action_message) {
+				setEventMessage($langs->trans('FileDeletedFromSolrServerSuccess'));
+			}
+		} else {
+			$error_message = $show_error_detailed_message ? ':<br/>' . $elbSolrUtil->getErrorMessage() : '.';
+			if ($show_action_message) {
+				setEventMessage($langs->trans('FileDeletedFromSolrServerError', $error_message), 'errors');
+			}
+		}
 	}
 }

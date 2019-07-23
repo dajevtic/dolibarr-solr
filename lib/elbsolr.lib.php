@@ -84,7 +84,7 @@ function elbsolr_build_file_link($modulepart, $filepath, $entity = null, $forced
 
 function elbsolr_get_object_link($modulepart, $relativefile)
 {
-	global $db;
+	global $db, $hookmanager;
 
 	//From \FormFile::list_of_autoecmfiles
 
@@ -202,6 +202,24 @@ function elbsolr_get_object_link($modulepart, $relativefile)
 		preg_match('/(.*)\/[^\/]+$/', $relativefile, $reg);
 		$id = (isset($reg[1]) ? $reg[1] : '');
 	}
+
+	if (!$id && !$ref) {
+		//For unknown modulepart will call hook method
+		$parameters = array (
+			'modulepart' => $modulepart,
+			'relativefile' => $relativefile,
+			'id' => $id,
+		);
+		$object=null;
+		$action=null;
+		$reshook = $hookmanager->executeHooks('getObjectLink', $parameters, $object, $action);
+		if ($reshook > 0) {
+			$object_instance = $hookmanager->object_instance;
+			$id = $hookmanager->object_id;
+			$ref = $hookmanager->object_ref;
+		}
+	}
+
 
 	if (!$id && !$ref) {
 		return false;

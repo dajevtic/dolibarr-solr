@@ -45,8 +45,14 @@ class ElbSolrUtil
 			$fileUser = new User($db);
 			$fileUser->fetch_user($ecmFiles->fk_user_c);
 		}
-		$src_object_type = !empty($ecmFiles->src_object_type) ? $ecmFiles->src_object_type : GETPOST('elbsolr_object_type', 'alpha');
-		$src_object_id = !empty($ecmFiles->src_object_id) ? $ecmFiles->src_object_id : GETPOST('elbsolr_object_id', 'int');
+		$src_object_type = !empty($ecmFiles->src_object_type) ? $ecmFiles->src_object_type : GETPOST('object_type', 'alpha');
+		$src_object_id = !empty($ecmFiles->src_object_id) ? $ecmFiles->src_object_id : GETPOST('object_id', 'int');
+		if($ecmFiles->gen_or_uploaded == 'unknown') {
+			$filename = basename($ecmFiles->fullpath_orig);
+		} else {
+			$filename = $ecmFiles->filename;
+		}
+
 		$params = array(
 			"literal.id" => $ecmFiles->id,
 			"commit" => "true",
@@ -54,7 +60,7 @@ class ElbSolrUtil
 			"uprefix" => "attr_",
 			"fmap.content" => "attr_content",
 			"literal.elb_fileid" => $ecmFiles->id,
-			"literal.elb_name" => $ecmFiles->filename,
+			"literal.elb_name" => $filename,
 			"literal.elb_description" => $ecmFiles->description,
 			"literal.elb_revision" => $revision,
 			"literal.elb_active" => $active,
@@ -176,6 +182,29 @@ class ElbSolrUtil
 	{
 		$target_url = $this->solr_server_url . "/update?commit=true&wt=json";
 		$post_data = '<delete><query>*:*</query></delete>';
+		$post_headers = array(
+			'Content-Type: text/xml'
+		);
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $target_url);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, $post_headers);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		if (!empty($this->solr_server_auth)) {
+			curl_setopt($ch, CURLOPT_USERPWD, $this->solr_server_auth);
+		}
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		$result = curl_exec($ch);
+		$res = $this->handleCurlResponse($ch, $result);
+		curl_close($ch);
+		return $res;
+	}
+
+	function deleteDocumentById($id)
+	{
+		$target_url = $this->solr_server_url . "/update?commit=true&wt=json";
+		$post_data = '<delete><query>id:'.$id.'</query></delete>';
 		$post_headers = array(
 			'Content-Type: text/xml'
 		);
@@ -332,6 +361,9 @@ class ElbSolrUtil
 			}
 			if($sortfield=='file') {
 				$sort_string = "elb_name ".$sortorder;
+			}
+			if($sortfield=='date') {
+				$sort_string = "elb_created_date ".$sortorder;
 			}
 			if(!empty($sort_string)) {
 				$url.="&sort=".urlencode($sort_string);

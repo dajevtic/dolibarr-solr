@@ -88,3 +88,5 @@ ConfirmStopIndexing=Are you sure to want to stop current indexing?
 NotIndexedFiles=Not indexed files
 DocumentSearch=Document search
 FileSearchHelp=Use wildcard * to replace part of file name
+FileDeletedFromSolrServerSuccess=File was deleted successfully
+FileDeletedFromSolrServerError=There was an error while deleting file in Solr: %s

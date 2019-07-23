@@ -50,6 +50,8 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once 'lib/elbsolr.lib.php';
 dol_include_once('/elbsolr/class/elbsolrutil.class.php', 'ElbSolrUtil');
 
+$hookmanager->initHooks(array('formfile'));
+
 $action = GETPOST('action', 'alpha');
 $page = GETPOST("page", 'int');
 $search_btn = GETPOST('button_search', 'alpha');
@@ -63,6 +65,11 @@ $sortorder = GETPOST("sortorder", 'alpha');
 $limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
 $search_file = GETPOST('search_file', 'alpha');
 $search_content = GETPOST('search_content', 'alpha');
+
+if(empty($sortfield)) {
+    $sortfield = "date";
+    $sortorder = "desc";
+}
 
 // Load translation files required by the page
 $langs->loadLangs(array("elbsolr@elbsolr"));
@@ -124,21 +131,21 @@ if (count($file_ids) > 0) {
 			if ($row) {
 				$file = array();
 				$file['id'] = $indexed_files[$row->rowid]['id'];
-				$file['name'] = $row->filename;
+				$file['name'] = $indexed_files[$row->rowid]['elb_name'];
+				$modulepart = elbsolr_get_file_modulepart($row->filepath);
+				$relpath = substr($row->filepath, strlen($modulepart) + 1) . "/" . $row->filename;
 				$file['filepath'] = $elbSolr->getFullFilePath($row);
 				$file['object_type'] = $row->src_object_type;
 				$file['object_id'] = $row->src_object_id;
 				$file['description'] = $row->description;
-				$modulepart = elbsolr_get_file_modulepart($row->filepath);
 				$file['modulepart'] = $modulepart;
-				$relpath = substr($row->filepath, strlen($modulepart) + 1) . "/" . $row->filename;
 				$file['relpath'] = $relpath;
 				$file['link'] = elbsolr_build_file_link($modulepart, $relpath, $row->entity);
 				$file['object_link'] = elbsolr_get_object_link($modulepart, $relpath);
 				if (file_exists($file['filepath'])) {
 					$size = dol_filesize($file['filepath']);
 					$file['size'] = $size;
-					$file['date'] = dol_filemtime($file['filepath']);
+					$file['date'] = $row->date_c;
 				}
 				$file['index_data'] = $indexed_files[$row->rowid];
 				$user = new User($db);
@@ -200,7 +207,7 @@ if ($search_content != '') $param .= '&search_content=' . $search_content;
                     <th class="liste_titre"><?php echo $langs->trans('Ref') ?></th>
                     <th class="liste_titre"><?php echo $langs->trans('Description') ?></th>
 					<?php print_liste_field_titre('Size', $_SERVER["PHP_SELF"], "size", "", $param, "", $sortfield, $sortorder) ?>
-                    <th class="liste_titre"><?php echo $langs->trans('Date') ?></th>
+					<?php print_liste_field_titre('Date', $_SERVER["PHP_SELF"], "date", "", $param, "", $sortfield, $sortorder) ?>
                     <th class="liste_titre"><?php echo $langs->trans('User') ?></th>
                 </tr>
                 </thead>
