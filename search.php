@@ -80,8 +80,8 @@ $elbSolr = new ElbSolrUtil();
 
 if (GETPOST('button_removefilter_x', 'alpha') || GETPOST('button_removefilter.x', 'alpha') || GETPOST('button_removefilter', 'alpha')) // All tests are required to be compatible with all browsers
 {
-	$search_file = '';
-	$search_content = '';
+	header("location: ".$_SERVER['PHP_SELF']);
+	exit;
 }
 
 /*
@@ -102,7 +102,7 @@ llxHeader("", $langs->trans("DocumentSearch"));
 
 $files = array();
 
-$res = $elbSolr->search($search_file, $search_content, $object_type = '', $object_id = null, $tags = array(), $rev = null, $limit, $page, $sortfield, $sortorder);
+$res = $elbSolr->search($search_file, $search_content, $rev = null, $limit, $page, $sortfield, $sortorder);
 
 $response = $elbSolr->response;
 $highlighting = $elbSolr->highlighting;
@@ -169,6 +169,13 @@ if ($limit > 0 && $limit != $conf->liste_limit) $param .= '&limit=' . $limit;
 if ($search_file != '') $param .= '&search_file=' . $search_file;
 if ($search_content != '') $param .= '&search_content=' . $search_content;
 
+$parameters = array('param' => $param);
+$object = null;
+$action = null;
+$reshook = $hookmanager->executeHooks('solrSearchUrlParams', $parameters, $object, $action);
+if ($reshook > 0) {
+	$param = $hookmanager->resArray['param'];
+}
 
 ?>
 
@@ -185,6 +192,17 @@ if ($search_content != '') $param .= '&search_content=' . $search_content;
 				<?php echo $langs->trans('Content') ?>:
                 <input class="flat" size="50" name="search_content" value="<?php echo $search_content ?>"/>
             </div>
+            <?php
+
+            $parameters = array ();
+            $object=null;
+            $action=null;
+            $reshook = $hookmanager->executeHooks('solrSearchAdditionalSearch', $parameters, $object, $action);
+            if ($reshook > 0) {
+	            print $hookmanager->resArray['solrSearchAdditionalSearch'];
+            }
+
+            ?>
         </div>
         <div class="div-table-responsive">
             <table class="tagtable liste listwithfilterbefore" width="100%">
@@ -198,6 +216,16 @@ if ($search_content != '') $param .= '&search_content=' . $search_content;
                     <td></td>
                     <td></td>
                     <td></td>
+                    <td></td>
+                    <?php
+                    $parameters = array ();
+                    $object=null;
+                    $action=null;
+                    $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumnSearch', $parameters, $object, $action);
+                    if ($reshook > 0) {
+	                    print $hookmanager->resArray['solrSearchAdditionalColumnSearch'];
+                    }
+                    ?>
                     <td align="right">
 						<?php echo $form->showFilterButtons(); ?>
                     </td>
@@ -209,6 +237,16 @@ if ($search_content != '') $param .= '&search_content=' . $search_content;
 					<?php print_liste_field_titre('Size', $_SERVER["PHP_SELF"], "size", "", $param, "", $sortfield, $sortorder) ?>
 					<?php print_liste_field_titre('Date', $_SERVER["PHP_SELF"], "date", "", $param, "", $sortfield, $sortorder) ?>
                     <th class="liste_titre"><?php echo $langs->trans('User') ?></th>
+	                <?php
+	                $parameters = array ();
+	                $object=null;
+	                $action=null;
+	                $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumnHeader', $parameters, $object, $action);
+	                if ($reshook > 0) {
+		                print $hookmanager->resArray['solrSearchAdditionalColumnHeader'];
+	                }
+	                ?>
+                    <th></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -254,6 +292,16 @@ if ($search_content != '') $param .= '&search_content=' . $search_content;
                             <td>
 								<?php print $file['user_link'] ?>
                             </td>
+	                        <?php
+	                        $parameters = array('file' => $file);
+	                        $object = null;
+	                        $action = null;
+	                        $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumn', $parameters, $object, $action);
+	                        if ($reshook > 0) {
+		                        print $hookmanager->resArray['solrSearchAdditionalColumn'];
+	                        }
+	                        ?>
+                            <td></td>
                         </tr>
 					<?php } ?>
 				<?php } else { ?>

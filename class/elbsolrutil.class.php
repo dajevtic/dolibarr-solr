@@ -39,7 +39,6 @@ class ElbSolrUtil
 		$revision = null;
 		$active = true;
 		$filemapid = null;
-		$tags = array();
 		$fileUser = $user;
 		if (!empty($ecmFiles->fk_user_c)) {
 			$fileUser = new User($db);
@@ -72,10 +71,12 @@ class ElbSolrUtil
 			"literal.elb_object_id" => $src_object_id,
 			"literal.elb_created_date" => $ecmFiles->date_c,
 			"literal.elb_user" => $fileUser->getFullName($langs),
-			"literal.elb_tag" => $tags,
 			"literal.elb_server" => $_SERVER['SERVER_NAME'],
 			"wt" => "json"
 		);
+
+		$this->getAdditionalParams($ecmFiles, $params);
+
 		$url_params = http_build_query($params, null, "&");
 		$url_params = preg_replace('/%5B(?:[0-9]|[1-9][0-9]+)%5D=/', '=', $url_params);
 		$target_url = $target_url . "?" . $url_params;
@@ -95,6 +96,19 @@ class ElbSolrUtil
 		curl_close($ch);
 		return true;
 
+	}
+
+	private function getAdditionalParams($ecmFiles, &$params) {
+		global $hookmanager;
+		$parameters = array (
+			'ecmFiles' => $ecmFiles,
+		);
+		$object=null;
+		$action=null;
+		$reshook = $hookmanager->executeHooks('getSolrIndexingAdditionalParams', $parameters, $object, $action);
+		if ($reshook > 0) {
+			$params = array_merge($params, $hookmanager->resArray['additionalParams']);
+		}
 	}
 
 	private function handleCurlResponse($ch, $result)
@@ -312,7 +326,9 @@ class ElbSolrUtil
 	}
 
 
-	public function search($name='', $content='',$object_type='', $object_id=null, $tags=array(), $rev=null, $limit=50, $page=0, $sortfield=null, $sortorder=null) {
+	public function search($name='', $content='', $rev=null, $limit=50, $page=0, $sortfield=null, $sortorder=null) {
+
+		global $hookmanager;
 
 		$query_parts=array();
 
@@ -324,22 +340,16 @@ class ElbSolrUtil
 		if(!empty($content)) {
 			$query_parts[]="attr_content:".$content;
 		}
-		if(!empty($elb_object_type)) {
-			$query_parts[]="elb_object_type:".$object_type;
-		}
-		if(!empty($elb_object_id)) {
-			$query_parts[]="elb_object_id:".$object_id;
-		}
-		if(count($tags)>0) {
-			$tags_array=array();
-			foreach($tags as $tag) {
-				$tags_array[]='"'.$tag.'"';
-			}
-			$tag_query="(".implode(" OR ", $tags_array). ")";
-			$query_parts[]="elb_tag:".$tag_query;
-		}
 		if(!empty($rev)) {
 			$query_parts[]="elb_revision:".$rev;
+		}
+
+		$parameters = array ();
+		$object=null;
+		$action=null;
+		$reshook = $hookmanager->executeHooks('solrExecuteAdditionalSearch', $parameters, $object, $action);
+		if ($reshook > 0) {
+			$query_parts = array_merge($query_parts, $hookmanager->resArray['query_parts']);
 		}
 
 		$query=implode(" AND ", $query_parts);
