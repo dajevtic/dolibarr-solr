@@ -216,14 +216,17 @@ if ($reshook > 0) {
                     <td></td>
                     <td></td>
                     <td></td>
-                    <td></td>
                     <?php
                     $parameters = array ();
                     $object=null;
                     $action=null;
+                    $columns = array ();
                     $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumnSearch', $parameters, $object, $action);
                     if ($reshook > 0) {
-	                    print $hookmanager->resArray['solrSearchAdditionalColumnSearch'];
+	                    $columns = $hookmanager->resArray['columns'];
+	                    foreach($columns as $column) {
+	                        print $column;
+                        }
                     }
                     ?>
                     <td align="right">
@@ -233,7 +236,6 @@ if ($reshook > 0) {
                 <tr class="liste_titre">
 	                <?php print_liste_field_titre('File', $_SERVER["PHP_SELF"], "file", "", $param, "", $sortfield, $sortorder) ?>
                     <th class="liste_titre"><?php echo $langs->trans('Ref') ?></th>
-                    <th class="liste_titre"><?php echo $langs->trans('Description') ?></th>
 					<?php print_liste_field_titre('Size', $_SERVER["PHP_SELF"], "size", "", $param, "", $sortfield, $sortorder) ?>
 					<?php print_liste_field_titre('Date', $_SERVER["PHP_SELF"], "date", "", $param, "", $sortfield, $sortorder) ?>
                     <th class="liste_titre"><?php echo $langs->trans('User') ?></th>
@@ -243,7 +245,10 @@ if ($reshook > 0) {
 	                $action=null;
 	                $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumnHeader', $parameters, $object, $action);
 	                if ($reshook > 0) {
-		                print $hookmanager->resArray['solrSearchAdditionalColumnHeader'];
+		                $headers = $hookmanager->resArray['headers'];
+		                foreach($headers as $header) {
+			                print $header;
+		                }
 	                }
 	                ?>
                     <th></th>
@@ -274,7 +279,6 @@ if ($reshook > 0) {
 								}
 								?>
                             </td>
-                            <td></td>
                             <td>
 								<?php
 								$sizetoshow = dol_print_size($file['size'], 1, 1);
@@ -296,9 +300,12 @@ if ($reshook > 0) {
 	                        $parameters = array('file' => $file);
 	                        $object = null;
 	                        $action = null;
-	                        $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumn', $parameters, $object, $action);
+	                        $reshook = $hookmanager->executeHooks('solrSearchAdditionalColumnData', $parameters, $object, $action);
 	                        if ($reshook > 0) {
-		                        print $hookmanager->resArray['solrSearchAdditionalColumn'];
+		                        $data = $hookmanager->resArray['data'];
+		                        foreach($data as $td) {
+			                        print $td;
+		                        }
 	                        }
 	                        ?>
                             <td></td>
@@ -306,7 +313,7 @@ if ($reshook > 0) {
 					<?php } ?>
 				<?php } else { ?>
                     <tr>
-                        <td class="opacitymedium" colspan="6">
+                        <td class="opacitymedium" colspan="<?php echo 7 + count($columns) ?>">
 							<?php echo $langs->trans('NoResults') ?>
                         </td>
                     </tr>
