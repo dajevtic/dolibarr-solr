@@ -15,13 +15,13 @@ Module can be also used for additional and new modules installed in Dolibarr whi
 
 In order to search indexed documents ECM module in Dolibarr must be enabled.
 
-##Installation
+## Installation
 
 Module is installed as standard Dolibarr module by downlading and extracting in htdocs folder. 
 
 Name of module folder must be **elbsolr**.
 
-##Configuration
+## Configuration
 
 For module working remote Solr server must be installed and configured. 
 
@@ -36,7 +36,7 @@ In Solr configuration file **managed-schema** must be added following entry:
 <field name="elb_tag" type="text_general" multiValued="true" indexed="true" stored="true"/>
 ```
 
-##Usage
+## Usage
 
 In admin setup page must be first configured connection to Solr server, url to API and credentials 
 if server is protected by username and password.
