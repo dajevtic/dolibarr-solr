@@ -1,17 +1,67 @@
 <?php
+/* Copyright (C) 2019 Elb Solutions
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * \file    elbsolr/class/elbsolrutil.class.php
+ * \ingroup elbsolr
+ * \brief   Main Solr indexing class
+ *
+ * This class metohds are called in varius parts of Dolibarr for executing API calls to Solr indexing service
+ */
+
+
 
 class ElbSolrUtil
 {
 
-	private $solr_server_url;
-	private $solr_server_auth;
-	private $error;
+	/**
+	 * @var array Main response from Solr service API
+	 */
 	public $response;
+	/**
+	 * @var array Response header from Solr service API
+	 */
 	public $responseHeader;
+	/**
+	 * @var array Highlighting response from Solr service API
+	 */
 	public $highlighting;
+	/**
+	 * @var string Configured memory limit for indexing action
+	 */
 	public $memory_limit = '128M';
 
+	/**
+	 * @var string URL of remote Solr server
+	 */
+	private $solr_server_url;
+	/**
+	 * @var string username:password for accessing Solr server
+	 */
+	private $solr_server_auth;
+	/**
+	 * @var string holder for API errors
+	 */
+	private $error;
 
+	/**
+	 * ElbSolrUtil constructor.
+	 * Initialize class instance from global configuration
+	 */
 	function __construct()
 	{
 		global $conf;
@@ -19,6 +69,13 @@ class ElbSolrUtil
 		$this->solr_server_auth = $conf->global->ELBSOLR_SOLR_SERVER_AUTH;
 	}
 
+	/**
+	 * Add files to Solr indexing service.
+	 * Creates API request and upload file to remote Solr server.
+	 *
+	 * @param $ecmFiles EcmFiles file object to index
+	 * @return bool
+	 */
 	function addToSearchIndex($ecmFiles)
 	{
 
@@ -98,6 +155,13 @@ class ElbSolrUtil
 
 	}
 
+	/**
+	 * Calls hook to attach additional parameters for indexing.
+	 * Can be used by other modules
+	 *
+	 * @param $ecmFiles EcmFiles instance of file to index
+	 * @param $params array Array of parameters in which additional parameters will be merged
+	 */
 	private function getAdditionalParams($ecmFiles, &$params) {
 		global $hookmanager;
 		$parameters = array (
@@ -111,6 +175,13 @@ class ElbSolrUtil
 		}
 	}
 
+	/**
+	 * Common function to handle various responses from Solr API server
+	 *
+	 * @param $ch resource Curl resource
+	 * @param $result string Response from Curl
+	 * @return bool true if no error in connection or response, false otherwise
+	 */
 	private function handleCurlResponse($ch, $result)
 	{
 		//If curl can not be executed
@@ -135,18 +206,30 @@ class ElbSolrUtil
 			}
 		}
 
+		// Fill fields from response
 		$this->response = $result_json['response'];
 		$this->responseHeader = $result_json['responseHeader'];
 		$this->highlighting = @$result_json['highlighting'];
 		return true;
 	}
 
+	/**
+	 * Returns full path of file in EcmFiles table
+	 *
+	 * @param $ecmFiles EcmFiles
+	 * @return string full path on file system
+	 */
 	function getFullFilePath($ecmFiles)
 	{
 		$file = $ecmFiles->filepath . DIRECTORY_SEPARATOR . $ecmFiles->filename;
 		return DOL_DATA_ROOT . DIRECTORY_SEPARATOR . $file;
 	}
 
+	/**
+	 * Returns human readable error message from API call
+	 *
+	 * @return string
+	 */
 	function getErrorMessage()
 	{
 		if (is_array($this->error) && isset($this->error['msg'])) {
@@ -156,6 +239,11 @@ class ElbSolrUtil
 		}
 	}
 
+	/**
+	 * Retrieves status of configured Sold service by calling API /admin/ping
+	 *
+	 * @return array Status from server
+	 */
 	function getStatus()
 	{
 		$target_url = $this->solr_server_url . "/admin/ping";
@@ -176,6 +264,11 @@ class ElbSolrUtil
 
 	}
 
+	/**
+	 * Function to retrieve number of indexed documents on Solr server
+	 *
+	 * @return int Number of documents
+	 */
 	function getNumberOfDocuments()
 	{
 		$target_url = $this->solr_server_url . "/select?q=*:*&rows=0";
@@ -192,6 +285,11 @@ class ElbSolrUtil
 		return $this->response['numFound'];
 	}
 
+	/**
+	 * Function calls Solr API to delete all indexed documents
+	 *
+	 * @return bool true if success, false otherwise
+	 */
 	function clearAllIndexedDocuments()
 	{
 		$target_url = $this->solr_server_url . "/update?commit=true&wt=json";
@@ -215,6 +313,12 @@ class ElbSolrUtil
 		return $res;
 	}
 
+	/**
+	 * Deleted document on Solr server by it's id
+	 *
+	 * @param $id   string  id of document to delete
+	 * @return bool true if success, false otherwise
+	 */
 	function deleteDocumentById($id)
 	{
 		$target_url = $this->solr_server_url . "/update?commit=true&wt=json";
@@ -238,6 +342,11 @@ class ElbSolrUtil
 		return $res;
 	}
 
+	/**
+	 * Function retrieves indexing status in background process by reading temporary file
+	 *
+	 * @return string Full indexing status
+	 */
 	function getIndexingStatus()
 	{
 		global $langs;
@@ -260,12 +369,23 @@ class ElbSolrUtil
 
 	}
 
+	/**
+	 * Helper function to convert memory usage to human readable format
+	 *
+	 * @param $size int number of Bytes
+	 * @return string human readable size in B, KB, MB, ...
+	 */
 	private function convertBytes($size)
 	{
 		$unit = array('B', 'KB', 'MB', 'GB', 'TB', 'PB');
 		return @round($size / pow(1024, ($i = floor(log($size, 1024)))), 2) . ' ' . $unit[$i];
 	}
 
+	/**
+	 * Function returns path to indexing status file
+	 *
+	 * @return string full path to file
+	 */
 	public function getIndexingStatusFile() {
 		$status_folder = DOL_DATA_ROOT . "/elbsolr/temp";
 		if (!file_exists($status_folder)) {
@@ -274,6 +394,11 @@ class ElbSolrUtil
 		return $status_folder . "/indexing.json";
 	}
 
+	/**
+	 * Checks if indexing is in background process by reading status file and checking proccess ID
+	 *
+	 * @return bool true if indexing is running
+	 */
 	public function isIndexingInProgress()
 	{
 		$indexing_status_file = $this->getIndexingStatusFile();
@@ -290,6 +415,11 @@ class ElbSolrUtil
 		return false;
 	}
 
+	/**
+	 * Checks if indexing is finished in background by reading status file and checking proccess ID
+	 *
+	 * @return bool true if indexing is finished
+	 */
 	public function isIndexingFinished()
 	{
 		$indexing_status_file = $this->getIndexingStatusFile();
@@ -306,10 +436,20 @@ class ElbSolrUtil
 		return false;
 	}
 
+	/**
+	 * Retrieves full path to indexing script in background
+	 *
+	 * @return bool|string full path to file
+	 */
 	public function getIndexingScriptFile() {
 		return realpath(dirname(__FILE__) . "/../scripts/solr_indexing.php");
 	}
 
+	/**
+	 * Displays indexing errors from background process, files that can not be indexed
+	 *
+	 * @return bool|array false if there is no errors or array with errors
+	 */
 	public function getIndexingErrors() {
 		$indexing_status_file = $this->getIndexingStatusFile();
 		if (!file_exists($indexing_status_file)) {
@@ -325,8 +465,19 @@ class ElbSolrUtil
 		return false;
 	}
 
-
-	public function search($name='', $content='', $rev=null, $limit=50, $page=0, $sortfield=null, $sortorder=null) {
+	/**
+	 * Function performs document search on Solr server by calling API.
+	 * It builds search query based on standard attributes and additional attributes from other modules
+	 *
+	 * @param string $name      query part for file name
+	 * @param string $content   query part for file content
+	 * @param int $limit        number of results to limit in response
+	 * @param int $page         current page offset for results
+	 * @param null $sortfield   sorting field for response
+	 * @param null $sortorder   sorting order for response
+	 * @return bool             true/false depending on result
+	 */
+	public function search($name='', $content='', $limit=50, $page=0, $sortfield=null, $sortorder=null) {
 
 		global $hookmanager;
 
@@ -339,9 +490,6 @@ class ElbSolrUtil
 		}
 		if(!empty($content)) {
 			$query_parts[]="attr_content:".$content;
-		}
-		if(!empty($rev)) {
-			$query_parts[]="elb_revision:".$rev;
 		}
 
 		$parameters = array ();

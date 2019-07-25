@@ -1,7 +1,5 @@
 <?php
-/* Copyright (C) 2004-2018 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2018	   Nicolas ZABOURI 	<info@inovea-conseil.com>
- * Copyright (C) 2019 SuperAdmin
+/* Copyright (C) 2019 Elb Solutions
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +59,7 @@ class modElbSolr extends DolibarrModules
 		// Module label (no space allowed), used if translation string 'ModuleElbSolrName' not found (ElbSolr is name of module).
 		$this->name = preg_replace('/^mod/i','',get_class($this));
 		// Module description, used if translation string 'ModuleElbSolrDesc' not found (ElbSolr is name of module).
-		$this->description = "SOLR search engine integration for quick document search";
+		$this->description = "SOLR search engine";
 		// Used only if file README.md and README-LL.md not found.
 		$this->descriptionlong = "SOLR search engine integration for quick document search";
 
@@ -110,7 +108,7 @@ class modElbSolr extends DolibarrModules
 		$this->conflictwith = array();	// List of module class names as string this module is in conflict with. Example: array('modModuleToDisable1', ...)
 		$this->langfiles = array("elbsolr@elbsolr");
 		//$this->phpmin = array(5,4);					// Minimum version of PHP required by module
-		$this->need_dolibarr_version = array(4,0);		// Minimum version of Dolibarr required by module
+		$this->need_dolibarr_version = array(8,0);		// Minimum version of Dolibarr required by module
 		$this->warnings_activation = array();			// Warning to show when we activate module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
 		$this->warnings_activation_ext = array();		// Warning to show when we activate an external module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
 		//$this->automatic_activation = array('FR'=>'ElbSolrWasAutomaticallyActivatedBecauseOfYourCountryChoice');

@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2019 SuperAdmin
+/* Copyright (C) 2019 Elb Solutions
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,9 +18,7 @@
 /**
  * \file    core/triggers/interface_99_modElbSolr_ElbSolrTriggers.class.php
  * \ingroup elbsolr
- * \brief   Example trigger.
- *
- * Put detailed description here.
+ * \brief   Module interface for triggers
  *
  * \remarks You can create other triggers by copying this one.
  * - File name should be either:
@@ -317,6 +315,7 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 				$this->addFileToSolr($object);
 				break;
 			case "ECMFILES_MODIFY":
+				//
 				dol_syslog("Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id);
 				// Do not execute if indexing not active
 				if (empty($conf->global->ELBSOLR_INDEXING_ACTIVE)) {
@@ -340,6 +339,11 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 		return 0;
 	}
 
+	/**
+	 * Wrapper function for calling ElbSolrUtil to send file to Solr server
+	 *
+	 * @param $object object File to index
+	 */
 	private function addFileToSolr($object) {
 		global $conf, $langs;
 		$elbSolrUtil = new ElbSolrUtil();
@@ -367,6 +371,11 @@ class InterfaceElbSolrTriggers extends DolibarrTriggers
 		}
 	}
 
+	/**
+	 * Wrapper function for calling ElbSolrUtil to delete file from Solr server
+	 *
+	 * @param $object object file to delete
+	 */
 	private function deleteFileFromSolr($object) {
 		global $conf, $langs;
 		$elbSolrUtil = new ElbSolrUtil();

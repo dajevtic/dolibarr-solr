@@ -1,6 +1,5 @@
 <?php
-/* Copyright (C) 2004-2017 Laurent Destailleur  <eldy@users.sourceforge.net>
- * Copyright (C) 2019 SuperAdmin
+/* Copyright (C) 2019 Elb Solutions
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,9 +16,9 @@
  */
 
 /**
- * \file    elbsolr/admin/about.php
+ * \file    elbsolr/admin/status.php
  * \ingroup elbsolr
- * \brief   About page of module ElbSolr.
+ * \brief   Status page for Solr service
  */
 
 // Load Dolibarr environment

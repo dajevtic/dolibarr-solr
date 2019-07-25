@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2019 SuperAdmin
+/* Copyright (C) 2019 Elb Solutions
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
  * \ingroup elbsolr
  * \brief   Example hook overload.
  *
- * Put detailed description here.
  */
 
 /**
@@ -242,6 +241,16 @@ class ActionsElbSolr
 
 	/* Add here any other hooked methods... */
 
+	/**
+	 * Added hidden fields to upload file form in order to transfer current object information to Solr indexing engine
+	 *
+	 *
+	 * @param	array	$parameters		Array of parameters
+	 * @param   Object	$pdfhandler   	PDF builder handler
+	 * @return  int 		        	<0 if KO,
+	 *                          		=0 if OK but we want to process standard actions too,
+	 *  	                            >0 if OK and we want to replace standard actions.
+	 */
 	function formattachOptions($parameters,$object) {
 		$s='<input type="hidden" value="'.$object->element.'" name="object_type"/>';
 		$s.='<input type="hidden" value="'.$object->id.'" name="object_id"/>';

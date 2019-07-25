@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2019 SuperAdmin
+/* Copyright (C) 2019 Elb Solutions
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,6 +61,12 @@ function elbsolrAdminPrepareHead()
 	return $head;
 }
 
+/**
+ * Retrives document modulepart from file relative path
+ *
+ * @param string $filepath filepath from ecm_files
+ * @return string modulepart
+ */
 function elbsolr_get_file_modulepart($filepath)
 {
 	$arr = explode("/", $filepath);
@@ -68,6 +74,15 @@ function elbsolr_get_file_modulepart($filepath)
 	return $modulepart;
 }
 
+/**
+ * Builds file download link from file elements
+ *
+ * @param string $modulepart    modulepart for document file
+ * @param string $filepath      relative path to file
+ * @param integer $entity       entity for multicompany
+ * @param int $forcedownload    Force to open dialog box "Save As" when clicking on file.
+ * @return string               Full link to download file
+ */
 function elbsolr_build_file_link($modulepart, $filepath, $entity = null, $forcedownload = 0)
 {
 
@@ -82,6 +97,13 @@ function elbsolr_build_file_link($modulepart, $filepath, $entity = null, $forced
 	return $link;
 }
 
+/**
+ * Function build object link for various modules in Dolibarr
+ *
+ * @param string $modulepart    modulepart of document
+ * @param string $relativefile  relative path to file
+ * @return bool|string full url to object or false
+ */
 function elbsolr_get_object_link($modulepart, $relativefile)
 {
 	global $db, $hookmanager;
