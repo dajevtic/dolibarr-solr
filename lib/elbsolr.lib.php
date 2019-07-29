@@ -184,7 +184,7 @@ function elbsolr_get_object_link($modulepart, $relativefile)
 		preg_match('/(.*)\/[^\/]+$/', $relativefile, $reg);
 		$ref = (isset($reg[1]) ? $reg[1] : '');
 	}
-	if ($modulepart == 'order') {
+	if ($modulepart == 'commande') {
 		preg_match('/(.*)\/[^\/]+$/', $relativefile, $reg);
 		$ref = (isset($reg[1]) ? $reg[1] : '');
 	}
