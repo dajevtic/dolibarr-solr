@@ -145,13 +145,13 @@ if (count($file_ids) > 0) {
 					$file['date'] = $row->date_c;
 				}
 				$file['index_data'] = $indexed_files[$row->rowid];
-				$user = new User($db);
-				$user->id = $row->fk_user_c;
-				$user->login = $row->login;
-				$user->firstname = $row->firstname;
-				$user->lastname = $row->lastname;
-				$user->email = $row->email;
-				$file['user_link'] = $user->getNomUrl(1);
+				$user_creator = new User($db);
+				$user_creator->id = $row->fk_user_c;
+				$user_creator->login = $row->login;
+				$user_creator->firstname = $row->firstname;
+				$user_creator->lastname = $row->lastname;
+				$user_creator->email = $row->email;
+				$file['user_link'] = $user_creator->getNomUrl(1);
 				$files[] = $file;
 			}
 			$i++;

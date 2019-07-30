@@ -149,9 +149,9 @@ class ElbSolrUtil
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		@curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
 		$result = curl_exec($ch);
-		$this->handleCurlResponse($ch, $result);
+		$res = $this->handleCurlResponse($ch, $result);
 		curl_close($ch);
-		return true;
+		return $res;
 
 	}
 
@@ -194,7 +194,7 @@ class ElbSolrUtil
 		//If curl is executed but response is not json, which can happen if there is some server error
 		$result_json = json_decode($result, true);
 		if ($result_json === false || $result_json === null || !is_array($result_json)) {
-			$this->error = $result;
+			$this->error = strip_tags($result);
 			return false;
 		}
 
