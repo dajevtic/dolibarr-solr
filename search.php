@@ -61,7 +61,7 @@ $sortfield = GETPOST("sortfield", 'alpha');
 $sortorder = GETPOST("sortorder", 'alpha');
 $limit = GETPOST('limit', 'int') ? GETPOST('limit', 'int') : $conf->liste_limit;
 $search_file = GETPOST('search_file', 'alpha');
-$search_content = GETPOST('search_content', 'alpha');
+$search_content = $_REQUEST['search_content'];
 
 if(empty($sortfield)) {
     $sortfield = "date";
@@ -190,7 +190,7 @@ date_default_timezone_set('UTC');
         <div class="liste_titre liste_titre_bydiv centpercent">
             <div class="divsearchfield">
 				<?php echo $langs->trans('Content') ?>:
-                <input class="flat" size="50" name="search_content" value="<?php echo $search_content ?>"/>
+                <input class="flat" size="50" name="search_content" value="<?php echo htmlspecialchars($search_content) ?>"/>
             </div>
             <?php
 
@@ -272,14 +272,14 @@ date_default_timezone_set('UTC');
 								}
 								?>
                             </td>
-                            <td>
+                            <td nowrap="nowrap">
 								<?php
 								if (!empty($file['object_link'])) {
 									print $file['object_link'];
 								}
 								?>
                             </td>
-                            <td>
+                            <td nowrap="nowrap">
 								<?php
 								$sizetoshow = dol_print_size($file['size'], 1, 1);
 								$sizetoshowbytes = dol_print_size($file['size'], 0, 1);
@@ -290,10 +290,10 @@ date_default_timezone_set('UTC');
 								}
 								?>
                             </td>
-                            <td>
+                            <td nowrap="nowrap">
 								<?php print dol_print_date($file['date'], "dayhour", "tzserver") ?>
                             </td>
-                            <td>
+                            <td nowrap="nowrap">
 								<?php print $file['user_link'] ?>
                             </td>
 	                        <?php

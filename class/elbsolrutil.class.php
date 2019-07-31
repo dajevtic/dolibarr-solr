@@ -364,7 +364,8 @@ class ElbSolrUtil
 			$s.= ", PID: ".$status['pid'];
 			return $s;
 		}
-		return $langs->trans('IndexingStatusFinished', $status['processed'], $status['errors'], dol_print_date($status['started'], 'dayhoursec'),
+		$s = $langs->trans('FormatIndexingStatusFinished');
+		return sprintf($s, $status['processed'], $status['missing'], $status['errors'], dol_print_date($status['started'], 'dayhoursec'),
 			convertSecondToTime($status['elapsed'], 'allhourmin'));
 
 	}
@@ -505,7 +506,7 @@ class ElbSolrUtil
 		$url=$this->solr_server_url."/select?indent=0&q=".urlencode($query)."&wt=json";
 		$url.="&fl=elb_*,id";
 		if(!empty($content)) {
-			$url.="&hl=on&hl.fl=attr_content&hl.simple.pre=<strong>&hl.simple.post=</strong>&hl.requireFieldMatch=true";
+			$url.="&hl=on&hl.fl=attr_content&hl.simple.pre=<strong>&hl.simple.post=</strong>&hl.requireFieldMatch=true&hl.fragsize=500";
 		}
 		$url.="&rows=".$limit;
 		$url.="&start=".$page * $limit;

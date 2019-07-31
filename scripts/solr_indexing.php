@@ -84,15 +84,21 @@ $files = $ecmfile->lines;
 $status_data['count'] = count($files);
 $status_data['processed'] = 0;
 $status_data['errors'] = 0;
+$status_data['missing'] = 0;
 $status_data['error_files'] = array();
 foreach ($files as $file) {
     $status_data['processed']++;
     $status_data['elapsed'] = dol_now('tzserver') - $now;
+	$file_path = $elbSolrUtil->getFullFilePath($file);
+	if (!file_exists($file_path)) {
+		$status_data['missing']++;
+		continue;
+	}
     $res = $elbSolrUtil->addToSearchIndex($file);
     if (!$res) {
         $status_data['errors']++;
         $error_msg = $elbSolrUtil->getErrorMessage();
-        $error_files[] = $file->filepath . (!empty($error_msg) ? (": " . $error_msg) : "");
+        $error_files[] = $file->filepath . DIRECTORY_SEPARATOR . $file->filename . (!empty($error_msg) ? (": " . $error_msg) : "");
     }
     $status_data['memory'] = memory_get_usage();
     file_put_contents($indexing_status_file, json_encode($status_data));
