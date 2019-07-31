@@ -51,7 +51,7 @@ see number of indexed documents and perform some actions.
 - Can be reindex all documents in Dolibarr database
 
 For reindexing documents must keep on mind that this is resource and time expensive task, 
-which will read all files on documents files system and upload them to Solr server for indexing. 
+which will read all files from Dolibarr database, locate them on files system and upload them to Solr server for indexing. 
 Because of that action is executed in background and user in any time can see progress of action and abort it.
 
 In order to search through indexed documents ECM module must be enabled in Dolibarr.
