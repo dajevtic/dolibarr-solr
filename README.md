@@ -34,6 +34,7 @@ In Solr configuration file **managed-schema** must be added following entry:
 
 ```html
 <field name="elb_tag" type="text_general" multiValued="true" indexed="true" stored="true"/>
+<dynamicField name="elb_*" type="text_lower" multiValued="false" indexed="true" stored="true"/>
 ```
 
 ## Usage
