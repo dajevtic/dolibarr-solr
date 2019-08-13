@@ -86,17 +86,29 @@ function elbsolr_get_file_modulepart($filepath)
 function elbsolr_build_file_link($modulepart, $filepath, $entity = null, $forcedownload = 0)
 {
 
-	if($modulepart == 'expedition') {
-		$filepath = str_replace("sending/", "", $filepath);
+	global $hookmanager;
+	$parameters = array();
+	$parameters['modulepart'] = $modulepart;
+	$parameters['filepath'] = $filepath;
+	$parameters['entity'] = $entity;
+	$parameters['forcedownload'] = $forcedownload;
+	$reshook = $hookmanager->executeHooks('getObjectDownloadLink', $parameters, $object, $action);
+	if ($reshook > 0) {
+		$link = $hookmanager->resArray['link'];
+	} else {
+		if($modulepart == 'expedition') {
+			$filepath = str_replace("sending/", "", $filepath);
+		}
+		$link = DOL_URL_ROOT . '/document.php?modulepart=' . $modulepart;
+		if ($forcedownload) {
+			$link .= '&attachment=1';
+		}
+		if (!empty($entity)) {
+			$link .= '&entity=' . $entity;
+		}
+		$link .= '&file=' . urlencode($filepath);
 	}
-	$link = DOL_URL_ROOT . '/document.php?modulepart=' . $modulepart;
-	if ($forcedownload) {
-		$link .= '&attachment=1';
-	}
-	if (!empty($entity)) {
-		$link .= '&entity=' . $entity;
-	}
-	$link .= '&file=' . urlencode($filepath);
+
 	return $link;
 }
 
