@@ -59,8 +59,8 @@ Then in Documents module on index page is available link to document search page
 
 On document search page user can see table list of all indexed files and can perform search by file name, 
 content or other additional properties if enabled with other modules.
-In case of content search user can see short from file contant if applicable. 
-Also link to different modules to which file belongs in displayed in search result.
+In case of content search user can see short content of the file if applicable. 
+Also link to different modules to which file belongs is displayed in search result.
 
 
 
